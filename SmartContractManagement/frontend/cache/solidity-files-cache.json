@@ -1,0 +1,40 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "C:\\Users\\samue\\Desktop\\eth-intermediate\\SmartContractManagement\\frontend\\contracts\\Dog.sol": {
+      "lastModificationDate": 1702599186233,
+      "contentHash": "c8ab6765edf0deee210f9ff2edfcbda7",
+      "sourceName": "contracts/Dog.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.8.19"
+      ],
+      "artifacts": [
+        "DOGToken"
+      ]
+    }
+  }
+}
