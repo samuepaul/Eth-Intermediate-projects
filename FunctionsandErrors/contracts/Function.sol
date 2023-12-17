@@ -1,59 +1,52 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.19;
 
 contract ErrorHandling {
-    // Declare a state variable "balance" to store the contract's balance.
-    uint public balance = 0;
+    uint public contractBalance = 0;
 
-    // Function to deposit an amount with a require statement
-    function depositRequire(uint _amount) public {
-        // Check if the deposit amount is greater than zero.
-        require(_amount > 0, "Deposit amount must be greater than zero");
+    event Deposited(uint amount);
+    event Withdrawn(uint amount);
 
-        // Update the balance by adding the deposited amount.
-        balance += _amount;
+    error ZeroAmountError(string message);
+    error InsufficientBalanceError(string message);
+    error DivisionByZeroError();
+
+    function deposit(uint amount) public {
+        if (amount == 0) {
+            revert ZeroAmountError("Deposit amount must be greater than zero");
+        }
+        contractBalance += amount;
+        emit Deposited(amount);
     }
 
-    // Function to withdraw an amount with require statements
-    function withdrawRequire(uint _amount) public {
-        // Check if the withdrawal amount is greater than zero.
-        require(_amount > 0, "Withdrawal amount must be greater than zero");
-
-        // Check if the withdrawal amount is not greater than the balance.
-        require(_amount <= balance, "Insufficient balance");
-
-        // Update the balance by deducting the withdrawn amount.
-        balance -= _amount;
+    function withdraw(uint amount) public {
+        if (amount == 0) {
+            revert ZeroAmountError("Withdrawal amount must be greater than zero");
+        }
+        if (amount > contractBalance) {
+            revert InsufficientBalanceError("Insufficient balance for withdrawal");
+        }
+        contractBalance -= amount;
+        emit Withdrawn(amount);
     }
 
-    // Function to divide two numbers with a require statement
-    function divideRequire(uint _numerator, uint _denominator) public pure returns (uint) {
-        // Check if the denominator is not zero.
-        require(_denominator != 0, "Cannot divide by zero");
-
-        // Perform the division and return the result.
-        return _numerator / _denominator;
+    function divide(uint numerator, uint denominator) public pure returns (uint) {
+        if (denominator == 0) {
+            revert DivisionByZeroError();
+        }
+        return numerator / denominator;
     }
 
-    // Function to demonstrate the use of assert statements
-    function assertFunction() public pure {
-        // Divide 10 by 2, which should trigger a division by zero error and revert the transaction.
-        // Note: This is just for demonstration purposes and should not be used in production code.
-        uint result = divideRequire(10, 2);
-
-        // Assert that the result is equal to 6, which will always fail and cause the transaction to fail.
-        assert(result == 6);
+    function checkInvariant() public view {
+        // Asserting an invariant: The contract balance should never be negative
+        assert(contractBalance >= 0);
     }
 
-    // Function to demonstrate the use of revert statements
-    function revertFunction() public pure {
-        // Divide 10 by 2, which will give a result of 5.
-        uint result = divideRequire(10, 2);
-
-        // Check if the result is equal to 5, and if true, revert the transaction with a custom error message.
-        if(result == 5){
-            revert("This function always reverts");
+    function conditionalRevert(bool condition) public pure {
+        // Demonstrate a practical use of revert with a condition
+        if (condition) {
+            revert("Condition was true, transaction reverted");
         }
     }
 }
