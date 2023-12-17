@@ -2,60 +2,84 @@
 
 pragma solidity ^0.8.19;
 
-contract DOGTokenMint {
+interface IERC20 {
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
+    function transfer(address recipient, uint256 amount) external returns (bool);
+    function allowance(address owner, address spender) external view returns (uint256);
+    function approve(address spender, uint256 amount) external returns (bool);
+    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
 
-    // Declare public variables
-    string public tokenName;
-    string public tokenSymbol;
-    uint256 public totalSupply;
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+
+contract DOGToken is IERC20 {
+    string public constant name = "Eth DOG Token";
+    string public constant symbol = "DGT";
+    uint8 public constant decimals = 18;
+
+    mapping(address => uint256) private _balances;
+    mapping(address => mapping(address => uint256)) private _allowances;
+
+    uint256 private _totalSupply;
     address public owner;
 
-    // Create a mapping of addresses to balances
-    mapping(address => uint256) public balance;
-
-    // Constructor function that sets the token name, symbol, and owner
     constructor() {
-        tokenName = "Eth DOG Token";
-        tokenSymbol = "DGT";
         owner = msg.sender;
     }
 
-    // Modifier that only allows the owner to execute a function
     modifier onlyOwner() {
         require(msg.sender == owner, "Only owner can perform this action!");
         _;
     }
 
-    // This function allows only the owner of the contract to mint new tokens
-    function mint(address _recipient, uint256 _amount) public onlyOwner {
-        // Increase the total supply
-        totalSupply += _amount;
-        // Increase the balance of the specified address
-        balance[_recipient] += _amount;
+    function totalSupply() public view override returns (uint256) {
+        return _totalSupply;
     }
 
-    // This function allows anyone to burn their own tokens
-    // It takes one argument: the amount of tokens to burn
-    function burn(uint256 _amount) public {
-        // Make sure the sender has enough tokens to burn
-        require(balance[msg.sender] >= _amount, "Insufficient balance");
-        // Subtract the burn amount from the total supply
-        totalSupply -= _amount;
-        // Subtract the burn amount from the sender's balance
-        balance[msg.sender] -= _amount;
+    function balanceOf(address account) public view override returns (uint256) {
+        return _balances[account];
     }
 
-    // Function that allows anyone to transfer tokens to another address
-    // This function transfers tokens from the sender to the recipient
-    // It takes two arguments: the recipient's address and the amount of tokens to transfer
-    function transfer(address _recipient, uint256 _amount) public {
-        // Make sure the sender is not the recipient
-        require(msg.sender != _recipient,"You can not transfer token(s) to yourself!");
-        // Make sure the sender has enough tokens to transfer
-        require(balance[msg.sender] >= _amount, "Transfer amount exceeds balance");
-        // Subtract the transfer amount from the sender's balance
-        balance[msg.sender] -= _amount;
-        // Add the transfer amount to the recipient's balance
-        balance[_recipient] += _amount;
+    function transfer(address recipient, uint256 amount) public override returns (bool) {
+        require(balanceOf(msg.sender) >= amount, "Insufficient balance");
+        _balances[msg.sender] -= amount;
+        _balances[recipient] += amount;
+        emit Transfer(msg.sender, recipient, amount);
+        return true;
+    }
+
+    function mint(address account, uint256 amount) public onlyOwner {
+        _totalSupply += amount;
+        _balances[account] += amount;
+        emit Transfer(address(0), account, amount);
+    }
+
+    function burn(uint256 amount) public {
+        require(_balances[msg.sender] >= amount, "Insufficient balance");
+        _totalSupply -= amount;
+        _balances[msg.sender] -= amount;
+        emit Transfer(msg.sender, address(0), amount);
+    }
+
+    function allowance(address owner, address spender) public view override returns (uint256) {
+        return _allowances[owner][spender];
+    }
+
+    function approve(address spender, uint256 amount) public override returns (bool) {
+        _allowances[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+
+    function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
+        require(_balances[sender] >= amount, "Insufficient balance");
+        require(_allowances[sender][msg.sender] >= amount, "Insufficient allowance");
+        _balances[sender] -= amount;
+        _balances[recipient] += amount;
+        _allowances[sender][msg.sender] -= amount;
+        emit Transfer(sender, recipient, amount);
+        return true;
     }
 }
